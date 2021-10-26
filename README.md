@@ -35,3 +35,4 @@ $ ./simba --file /path/to/file.txt
 # Future Updates 🕒
 
 **Note:** Options such as specifying proxies etc.. and much more would be addded in future updates
+
