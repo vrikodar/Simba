@@ -1,0 +1,83 @@
+#!/usr/bin/python3
+
+import optparse
+import requests
+import sys
+import os
+
+green = '\033[1;32;48m'
+bgreen = '\033[1;32m'
+bred = '\033[1;31m'
+noclr = '\033[0m'
+bblue = '\033[1;34m'
+cyan = '\033[0;36m'
+orng = '\033[0;33m'
+
+print(f'''\nSimba-{bred}v(1.0){noclr}
+Author: {bred}z3r0day{noclr}
+{bgreen}[web headers scanner]{noclr}\n''')
+
+def check_https(web_resp):
+	if 'https' in web_resp.url:
+		return True
+	else:
+		return False
+
+def check_file_existence(file_path):
+	if os.path.exists(file_path) == False:
+		return False
+	else:
+		return True
+
+def get_response(web_url):
+	try:
+		resp = requests.get(web_url, stream=True, allow_redirects=True)
+	except:
+		print(f"\n[{bred}Error{noclr}] something went wrong exiting..\n")
+	print(f"[{bgreen}+{noclr}] {bred}IP:{noclr} {resp.raw._connection.sock.getpeername()[0]}")
+	print(f"[{bgreen}+{noclr}] {bred}CODE:{noclr} {resp.status_code} {resp.reason}")
+	return resp
+
+def scan_header(header, header_dict):
+	try:
+		if not header in (header_dict.keys()):
+			print(f"{cyan}{header}:{noclr} {bred}missing{noclr}")
+		else:
+			header_value = header_dict[header]
+			print(f"{cyan}{header}:{noclr} {orng}{header_value}{noclr}")
+	except KeyboardInterrupt:
+		print(f"\n[{bred}KeyboardInterrupt{noclr}] Exiting..\n")
+
+parser = optparse.OptionParser("\n./simba [-h or --help] [-f or --file]=<file-path-with-website URLs, one on each line>")
+parser.add_option("-f", "--file", dest="websites_file_path", type='string', help="specify the file containing websites one on each line")
+(options, args) = parser.parse_args()
+
+if (options.websites_file_path == None):
+	parser.error(f"\n[{bred}Error{noclr}] Insufficent Arguments supplied {cyan}-f/--file{noclr} missing value\n")
+	sys.exit(0)
+elif check_file_existence(options.websites_file_path):
+	file_path = options.websites_file_path
+	print(f"\n[{bblue}INFO{noclr}] {cyan}{file_path}{noclr} file found!\n")
+	with open(file_path, 'r') as file:
+		for line in file.readlines():
+			website_url = line.strip()
+			print(f"\n[{bblue}INFO{noclr}] Analyzing {cyan}{website_url}{noclr}")
+			web_rsp = get_response(website_url)
+			headers = web_rsp.headers
+			if check_https(web_rsp):
+				print(f"[{bblue}INFO{noclr}] website is running {cyan}HTTPS{noclr}")
+				scan_header('Server', headers)
+				scan_header('Strict-Transport-Security', headers)
+				scan_header('Content-Security-Policy', headers)
+				scan_header('X-Frame-Options', headers)
+				print("")
+					
+			else:
+				print(f"[{bblue}INFO{noclr}] website is running {cyan}HTTP{noclr}")
+				scan_header('Server', headers)
+				scan_header('Content-Security-Policy', headers)
+				scan_header('X-Frame-Options', headers)
+				print("")
+else:
+	print(f"\n[{bred}Error{noclr}] something went wrong, please check your {cyan}file path{noclr}\n")
+
