@@ -30,7 +30,7 @@ $ ./simba --file /path/to/file.txt
 
 ## Demo 💻
 
-![](https://github.com/SxNade/Zora/blob/main/data/zora.gif)
+![](https://github.com/SxNade/SxNade.github.io/blob/main/simba.gif)
 
 # Future Updates 🕒
 
