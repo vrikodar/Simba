@@ -1,7 +1,7 @@
 # Simba
 
-<p align="center" width="300">
-  <img src="https://github.com/SxNade/Simba/blob/main/simba.png" />
+<p align="center" >
+  <img src="https://github.com/SxNade/Simba/blob/main/simba.png" width="500"/>
 </p>
 
 **Simba is a web headers scanner**
