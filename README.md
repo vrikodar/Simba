@@ -1,6 +1,6 @@
 # Simba
 
-<p align="center" width="500">
+<p align="center" width="300">
   <img src="https://github.com/SxNade/Simba/blob/main/simba.png" />
 </p>
 
