@@ -4,7 +4,7 @@
   <img src="https://github.com/SxNade/Simba/blob/main/simba.png" width="400"/>
 </p>
 
-**Simba is a web headers scanner**
+**Simba is a web headers security scanner**
 
 ## Installing and Running Simba 💻
 
