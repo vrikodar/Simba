@@ -17,7 +17,7 @@ orng = '\033[0;33m'
 
 print(f'''\nSimba-{bred}v(1.2){noclr}
 Author: {bred}z3r0day{noclr}
-{bgreen}[web headers scanner]{noclr}\n''')
+{bgreen}[web headers security scanner]{noclr}\n''')
 
 def check_https(web_resp):
 	if 'https' in web_resp.url:
