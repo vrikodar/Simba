@@ -40,7 +40,7 @@ def get_response(web_url):
 	except:
 		resp = requests.get(web_url, verify=False, stream=True, allow_redirects=True)
 		print(f"[{bgreen}+{noclr}] {bred}CODE:{noclr} {resp.status_code} {resp.reason}")
-		print(f"\n[{bred}Error{noclr}] something went wrong exiting..\n")
+		print(f"[{bred}Error{noclr}] something went wrong in exracting {bblue}IP{noclr}")
 		return resp
 
 def scan_header(header, header_dict):
