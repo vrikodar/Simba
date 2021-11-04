@@ -7,6 +7,7 @@ import os
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+white = "\033[1;37m"
 green = '\033[1;32;48m'
 bgreen = '\033[1;32m'
 bred = '\033[1;31m'
@@ -17,6 +18,8 @@ orng = '\033[0;33m'
 
 print(f'''\nSimba-{bred}v(1.2){noclr}
 Author: {bred}z3r0day{noclr}
+{white}Copyright (c) 2021{noclr}
+
 {bgreen}[web headers security scanner]{noclr}\n''')
 
 def check_https(web_resp):
@@ -35,11 +38,11 @@ def get_response(web_url):
 	try:
 		resp = requests.get(web_url, verify=False, stream=True, allow_redirects=True)
 		print(f"[{bgreen}+{noclr}] {bred}IP:{noclr} {resp.raw._connection.sock.getpeername()[0]}")
-		print(f"[{bgreen}+{noclr}] {bred}CODE:{noclr} {resp.status_code} {resp.reason}")
+		print(f"[{bgreen}+{noclr}] {bred}CODE:{noclr} {white}{resp.status_code} {resp.reason}{noclr}")
 		return resp
 	except:
 		resp = requests.get(web_url, verify=False, stream=True, allow_redirects=True)
-		print(f"[{bgreen}+{noclr}] {bred}CODE:{noclr} {resp.status_code} {resp.reason}")
+		print(f"[{bgreen}+{noclr}] {bred}CODE:{noclr} {white}{resp.status_code} {resp.reason}{noclr}")
 		print(f"[{bred}Error{noclr}] something went wrong in exracting {bblue}IP{noclr}")
 		return resp
 
