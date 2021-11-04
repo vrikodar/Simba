@@ -4,6 +4,8 @@ import optparse
 import requests
 import sys
 import os
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 green = '\033[1;32;48m'
 bgreen = '\033[1;32m'
@@ -13,7 +15,7 @@ bblue = '\033[1;34m'
 cyan = '\033[0;36m'
 orng = '\033[0;33m'
 
-print(f'''\nSimba-{bred}v(1.0){noclr}
+print(f'''\nSimba-{bred}v(1.2){noclr}
 Author: {bred}z3r0day{noclr}
 {bgreen}[web headers scanner]{noclr}\n''')
 
@@ -31,12 +33,15 @@ def check_file_existence(file_path):
 
 def get_response(web_url):
 	try:
-		resp = requests.get(web_url, stream=True, allow_redirects=True)
+		resp = requests.get(web_url, verify=False, stream=True, allow_redirects=True)
+		print(f"[{bgreen}+{noclr}] {bred}IP:{noclr} {resp.raw._connection.sock.getpeername()[0]}")
+		print(f"[{bgreen}+{noclr}] {bred}CODE:{noclr} {resp.status_code} {resp.reason}")
+		return resp
 	except:
+		resp = requests.get(web_url, verify=False, stream=True, allow_redirects=True)
+		print(f"[{bgreen}+{noclr}] {bred}CODE:{noclr} {resp.status_code} {resp.reason}")
 		print(f"\n[{bred}Error{noclr}] something went wrong exiting..\n")
-	print(f"[{bgreen}+{noclr}] {bred}IP:{noclr} {resp.raw._connection.sock.getpeername()[0]}")
-	print(f"[{bgreen}+{noclr}] {bred}CODE:{noclr} {resp.status_code} {resp.reason}")
-	return resp
+		return resp
 
 def scan_header(header, header_dict):
 	try:
@@ -80,4 +85,5 @@ elif check_file_existence(options.websites_file_path):
 				print("")
 else:
 	print(f"\n[{bred}Error{noclr}] something went wrong, please check your {cyan}file path{noclr}\n")
+
 
