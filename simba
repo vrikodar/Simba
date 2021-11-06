@@ -58,11 +58,32 @@ def scan_header(header, header_dict):
 
 parser = optparse.OptionParser("\n./simba [-h or --help] [-f or --file]=<file-path-with-website URLs, one on each line>")
 parser.add_option("-f", "--file", dest="websites_file_path", type='string', help="specify the file containing websites one on each line")
+parser.add_option("-l", "--link", dest="website_link", type='string', help="specify a single website link")
 (options, args) = parser.parse_args()
 
-if (options.websites_file_path == None):
+
+if options.websites_file_path == None and options.website_link == None:
 	parser.error(f"\n[{bred}Error{noclr}] Insufficent Arguments supplied {cyan}-f/--file{noclr} missing value\n")
 	sys.exit(0)
+elif options.website_link != None:
+	website_url = options.website_link
+	print(f"\n[{bblue}INFO{noclr}] Analyzing {cyan}{website_url}{noclr}")
+	web_rsp = get_response(website_url)
+	headers = web_rsp.headers
+	if check_https(web_rsp):
+		print(f"[{bblue}INFO{noclr}] website is running {cyan}HTTPS{noclr}")
+		scan_header('Server', headers)
+		scan_header('Strict-Transport-Security', headers)
+		scan_header('Content-Security-Policy', headers)
+		scan_header('X-Frame-Options', headers)
+		scan_header('X-XSS-Protection', headers)
+		print("")
+	else:
+		print(f"[{bblue}INFO{noclr}] website is running {cyan}HTTP{noclr}")
+		scan_header('Server', headers)
+		scan_header('Content-Security-Policy', headers)
+		scan_header('X-Frame-Options', headers)
+		print("")
 elif check_file_existence(options.websites_file_path):
 	file_path = options.websites_file_path
 	print(f"\n[{bblue}INFO{noclr}] {cyan}{file_path}{noclr} file found!\n")
@@ -87,6 +108,8 @@ elif check_file_existence(options.websites_file_path):
 				scan_header('Content-Security-Policy', headers)
 				scan_header('X-Frame-Options', headers)
 				print("")
+
+
 else:
 	print(f"\n[{bred}Error{noclr}] something went wrong, please check your {cyan}file path{noclr}\n")
 
