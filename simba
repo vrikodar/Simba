@@ -16,7 +16,7 @@ bblue = '\033[1;34m'
 cyan = '\033[0;36m'
 orng = '\033[0;33m'
 
-print(f'''\nSimba-{bred}v(1.2){noclr}
+print(f'''\nSimba-{bred}v(1.3){noclr}
 Author: {bred}z3r0day{noclr}
 {white}Copyright (c) 2021{noclr}
 
