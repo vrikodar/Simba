@@ -56,14 +56,14 @@ def scan_header(header, header_dict):
 	except KeyboardInterrupt:
 		print(f"\n[{bred}KeyboardInterrupt{noclr}] Exiting..\n")
 
-parser = optparse.OptionParser("\n./simba [-h or --help] [-f or --file]=<file-path-with-website URLs, one on each line>")
+parser = optparse.OptionParser("\n./simba [-h or --help] [-f or --file]=<file-path-with-website URLs, one on each line> [-l or --link=URL-of-one-website]")
 parser.add_option("-f", "--file", dest="websites_file_path", type='string', help="specify the file containing websites one on each line")
 parser.add_option("-l", "--link", dest="website_link", type='string', help="specify a single website link")
 (options, args) = parser.parse_args()
 
 
 if options.websites_file_path == None and options.website_link == None:
-	parser.error(f"\n[{bred}Error{noclr}] Insufficent Arguments supplied {cyan}-f/--file{noclr} missing value\n")
+	parser.error(f"\n[{bred}Error{noclr}] Insufficent Arguments supplied {cyan}-f/--file{noclr} or {cyan}-l/--link{noclr} missing value\n")
 	sys.exit(0)
 elif options.website_link != None:
 	website_url = options.website_link
