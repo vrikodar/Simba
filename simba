@@ -83,6 +83,7 @@ elif options.website_link != None:
 		scan_header('Server', headers)
 		scan_header('Content-Security-Policy', headers)
 		scan_header('X-Frame-Options', headers)
+		scan_header('X-XSS-Protection', headers)
 		print("")
 elif check_file_existence(options.websites_file_path):
 	file_path = options.websites_file_path
