@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 
 import optparse
+import socket
+import re
 import requests
 import sys
 import os
@@ -16,11 +18,48 @@ bblue = '\033[1;34m'
 cyan = '\033[0;36m'
 orng = '\033[0;33m'
 
-print(f'''\nSimba-{bred}v(1.3){noclr}
+print(f'''\nSimba-{bred}v(1.5){noclr}
 Author: {bred}z3r0day{noclr}
 {white}Copyright (c) 2021{noclr}
 
 {bgreen}[web headers security scanner]{noclr}\n''')
+
+user_agent_headers = {
+    'googlebot': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+	'chrome_win': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36',
+	'chrome_mac': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 12_0_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36',
+	'chrome_linux': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36',
+	'chrome_iphone': 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/96.0.4664.36 Mobile/15E148 Safari/604.1',
+	'chrome_android': 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.50 Mobile Safari/537.36',
+	'firefox_win': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0',
+	'firefox_linux': 'Mozilla/5.0 (Linux x86_64; rv:94.0) Gecko/20100101 Firefox/94.0',
+	'firefox_mac': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 12.0; rv:94.0) Gecko/20100101 Firefox/94.0',
+	'firefox_iphone': 'Mozilla/5.0 (iPhone; CPU iPhone OS 12_0_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/39.0 Mobile/15E148 Safari/605.1.15',
+	'firefox_android': 'Mozilla/5.0 (Android 12; Mobile; rv:68.0) Gecko/68.0 Firefox/94.0'
+}
+
+def uagent_header_parse(header_value):
+	try:
+		if header_value != None:
+			user_agent_header = user_agent_headers[header_value]
+			return user_agent_header
+	except:
+		print(f"[{bred}Error{noclr}] User-Agent Not Found")
+		options_display = f'''
+		{bred}User-Agent{noclr} options
+		- googlebot
+		
+		- chrome_win
+		- chrome_linux
+		- chrome_iphone
+		- chrome_mac
+		- chrome_android
+		
+		Similarly for {bgreen}firefox{noclr} also add the OS name as shown above
+		- firefox_*OS*
+		\n'''
+		print(options_display)
+		sys.exit(0)
 
 def check_https(web_resp):
 	if 'https' in web_resp.url:
@@ -34,42 +73,15 @@ def check_file_existence(file_path):
 	else:
 		return True
 
-def get_response(web_url):
-	try:
-		resp = requests.get(web_url, verify=False, stream=True, allow_redirects=True)
-		print(f"[{bgreen}+{noclr}] {bred}IP:{noclr} {resp.raw._connection.sock.getpeername()[0]}")
-		print(f"[{bgreen}+{noclr}] {bred}CODE:{noclr} {white}{resp.status_code} {resp.reason}{noclr}")
-		return resp
-	except:
-		resp = requests.get(web_url, verify=False, stream=True, allow_redirects=True)
-		print(f"[{bgreen}+{noclr}] {bred}CODE:{noclr} {white}{resp.status_code} {resp.reason}{noclr}")
-		print(f"[{bred}Error{noclr}] something went wrong in exracting {bblue}IP{noclr}")
-		return resp
+def parse_weburl(url):
+	if not url[-1] == '/':
+		url = url + '/'
+		return url
+	else:
+		return url
 
-def scan_header(header, header_dict):
-	try:
-		if not header in (header_dict.keys()):
-			print(f"{cyan}{header}:{noclr} {bred}missing{noclr}")
-		else:
-			header_value = header_dict[header]
-			print(f"{cyan}{header}:{noclr} {orng}{header_value}{noclr}")
-	except KeyboardInterrupt:
-		print(f"\n[{bred}KeyboardInterrupt{noclr}] Exiting..\n")
-
-parser = optparse.OptionParser("\n./simba [-h or --help] [-f or --file]=<file-path-with-website URLs, one on each line> [-l or --link=URL-of-one-website]")
-parser.add_option("-f", "--file", dest="websites_file_path", type='string', help="specify the file containing websites one on each line")
-parser.add_option("-l", "--link", dest="website_link", type='string', help="specify a single website link")
-(options, args) = parser.parse_args()
-
-
-if options.websites_file_path == None and options.website_link == None:
-	parser.error(f"\n[{bred}Error{noclr}] Insufficent Arguments supplied {cyan}-f/--file{noclr} or {cyan}-l/--link{noclr} missing value\n")
-	sys.exit(0)
-elif options.website_link != None:
-	website_url = options.website_link
-	print(f"\n[{bblue}INFO{noclr}] Analyzing {cyan}{website_url}{noclr}")
-	web_rsp = get_response(website_url)
-	headers = web_rsp.headers
+def header_scan(web_response):
+	headers = web_response.headers
 	if check_https(web_rsp):
 		print(f"[{bblue}INFO{noclr}] website is running {cyan}HTTPS{noclr}")
 		scan_header('Server', headers)
@@ -85,30 +97,68 @@ elif options.website_link != None:
 		scan_header('X-Frame-Options', headers)
 		scan_header('X-XSS-Protection', headers)
 		print("")
+
+def get_response(web_url, user_agent, **proxy_name):
+	try:
+		headers = requests.utils.default_headers()
+		headers.update({'User-Agent': f'{user_agent}'})
+		if proxy_name != None:
+			domain_name = re.findall("//(.*?)/", web_url)[0]
+			print(f"[{bblue}INFO{noclr}] using {bred}proxy{noclr} {cyan}{proxy_name['http']}{noclr}")
+			resp = requests.get(web_url,headers=headers, proxies=proxy_name, verify=False, allow_redirects=True)
+			print(f"[{bgreen}+{noclr}] {bred}IP:{noclr} {socket.gethostbyname(domain_name)}")
+			print(f"[{bgreen}+{noclr}] {bred}CODE:{noclr} {white}{resp.status_code} {resp.reason}{noclr}")
+			return resp
+		else:
+			domain_name = re.findall("//(.*?)/", web_url)[0]
+			resp = requests.get(web_url,headers=headers, verify=False, allow_redirects=True)
+			print(f"[{bgreen}+{noclr}] {bred}IP:{noclr} {socket.gethostbyname(domain_name)}")
+			print(f"[{bgreen}+{noclr}] {bred}CODE:{noclr} {white}{resp.status_code} {resp.reason}{noclr}")
+			return resp
+	except Exception as e:
+			print(f"[{bred}Error{noclr}] something went wrong !\n")
+			print(e)
+			sys.exit(0)
+
+def scan_header(header, header_dict):
+	try:
+		if not header in (header_dict.keys()):
+			print(f"{cyan}{header}:{noclr} {bred}missing{noclr}")
+		else:
+			header_value = header_dict[header]
+			print(f"{cyan}{header}:{noclr} {orng}{header_value}{noclr}")
+	except KeyboardInterrupt:
+		print(f"\n[{bred}KeyboardInterrupt{noclr}] Exiting..\n")
+
+parser = optparse.OptionParser("\n./simba [-h or --help] [-f or --file]=<file-path-with-website URLs, one on each line> [-l or --link=URL-of-one-website]")
+parser.add_option("-f", "--file", dest="websites_file_path", type='string', help="specify the file containing websites one on each line")
+parser.add_option("-l", "--link", dest="website_link", type='string', help="specify a single website link")
+parser.add_option("-p", "--proxy", dest="relay_proxy", type='string', help="specify a proxy in following format protocol://<IP>:<port>")
+parser.add_option("-u", "--useragent", dest="user_agent", type='string', help="specify a User-Agent Header from options [googlebot,chrome_*win/linux/mac/iphone/android*,firefox_*win/linux/mac/iphone/android*]")
+(options, args) = parser.parse_args()
+
+
+if options.websites_file_path == None and options.website_link == None:
+	parser.error(f"\n[{bred}Error{noclr}] Insufficent Arguments supplied {cyan}-f/--file{noclr} or {cyan}-l/--link{noclr} missing value\n")
+	sys.exit(0)
+elif options.website_link != None:
+	website_url = parse_weburl(options.website_link)
+	proxy_relay = options.relay_proxy
+	print(f"\n[{bblue}INFO{noclr}] Analyzing {cyan}{website_url}{noclr}")
+	user_agent_header = uagent_header_parse(options.user_agent)
+	web_rsp = get_response(website_url,user_agent_header,http=proxy_relay,https=proxy_relay)
+	header_scan(web_rsp)
 elif check_file_existence(options.websites_file_path):
 	file_path = options.websites_file_path
+	proxy_relay = options.relay_proxy
+	user_agent_header = uagent_header_parse(options.user_agent)
 	print(f"\n[{bblue}INFO{noclr}] {cyan}{file_path}{noclr} file found!\n")
 	with open(file_path, 'r') as file:
 		for line in file.readlines():
-			website_url = line.strip()
+			website_url = parse_weburl(line.strip())
 			print(f"\n[{bblue}INFO{noclr}] Analyzing {cyan}{website_url}{noclr}")
-			web_rsp = get_response(website_url)
-			headers = web_rsp.headers
-			if check_https(web_rsp):
-				print(f"[{bblue}INFO{noclr}] website is running {cyan}HTTPS{noclr}")
-				scan_header('Server', headers)
-				scan_header('Strict-Transport-Security', headers)
-				scan_header('Content-Security-Policy', headers)
-				scan_header('X-Frame-Options', headers)
-				scan_header('X-XSS-Protection', headers)
-				print("")
-					
-			else:
-				print(f"[{bblue}INFO{noclr}] website is running {cyan}HTTP{noclr}")
-				scan_header('Server', headers)
-				scan_header('Content-Security-Policy', headers)
-				scan_header('X-Frame-Options', headers)
-				print("")
+			web_rsp = get_response(website_url,user_agent_header,http=proxy_relay,https=proxy_relay)
+			header_scan(web_rsp)
 
 
 else:
