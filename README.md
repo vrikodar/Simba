@@ -23,9 +23,11 @@ $ ./simba --help
 $ ./simba --help
 ```
 
-### Specifying File containing website URLs `one at each line`
+### Specifying File containing website URLs `one at each line` or `individual links`
 ```bash
 $ ./simba --file /path/to/file.txt
+
+$ ./simba --link https://google.com/ 
 ```
 
 ## Demo 💻
